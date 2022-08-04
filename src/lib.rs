@@ -100,6 +100,49 @@ impl<
 }
 
 impl<
+        T: From<f32> + Copy + Add<Output = T> + AddAssign + Mul<Output = T>,
+        const ROWS: usize,
+        const COLS: usize,
+    > Mul<T> for Matrix<T, ROWS, COLS>
+{
+    // The multiplication of rational numbers is a closed operation.
+    type Output = Matrix<T, ROWS, COLS>;
+
+    fn mul(self, rhs: T) -> Self::Output {
+        let mut result = Matrix::<T, ROWS, COLS>::new();
+        for i in 0..ROWS {
+            for j in 0..COLS {
+                result.data[i][j] = self.data[i][j] * rhs;
+            }
+        }
+
+        result
+    }
+}
+
+impl<
+        T: From<f32> + Copy + Add<Output = T> + AddAssign + Mul<Output = T>,
+        const ROWS: usize,
+        const COLS: usize,
+    > Mul<Matrix<T, ROWS, COLS>> for f32
+{
+    // The multiplication of rational numbers is a closed operation.
+    type Output = Matrix<T, ROWS, COLS>;
+
+    fn mul(self, rhs: Matrix<T, ROWS, COLS>) -> Self::Output {
+        let mut result = Matrix::<T, ROWS, COLS>::new();
+        for i in 0..ROWS {
+            for j in 0..COLS {
+                result.data[i][j] = T::from(self) * rhs.data[i][j];
+            }
+        }
+
+        result
+    }
+}
+
+
+impl<
         T: From<f32> + Copy + Add<Output = T> + AddAssign,
         const ROWS: usize,
         const COLS: usize,
@@ -156,6 +199,22 @@ mod test_mat {
     }
 
     #[test]
+    fn mul_scaler_mat() {
+        let a: f32 = 2.0;
+
+        let mut b = Matrix::<f32, 2, 3>::new();
+        b.data = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]];
+        let c = a * b;
+        assert_eq!(c.data, [[2.0, 4.0, 6.0], [8.0, 10.0, 12.0]]);
+
+        let mut b = Matrix::<f32, 2, 3>::new();
+        b.data = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]];
+        let c = b * a;
+        assert_eq!(c.data, [[2.0, 4.0, 6.0], [8.0, 10.0, 12.0]]);
+    }
+
+
+    #[test]
     fn add_mat() {
         let mut a = Matrix::<f32, 2, 3>::new();
         a.data = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]];
@@ -165,4 +224,6 @@ mod test_mat {
         let c = a + b;
         assert_eq!(c.data, [[2.0, 4.0, 6.0], [8.0, 10.0, 12.0]]);
     }
+
+
 }
