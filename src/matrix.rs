@@ -6,7 +6,7 @@ pub struct Matrix<T, const ROWS: usize, const COLS: usize> {
     data: [[T; COLS]; ROWS],
 }
 
-impl<T: From<f32> + Copy, const ROWS: usize, const COLS: usize> Matrix<T, ROWS, COLS> {
+impl<'a, T: From<f32> + Copy, const ROWS: usize, const COLS: usize> Matrix<T, ROWS, COLS> {
     pub fn new() -> Self {
         Self {
             data: [[T::from(0.0); COLS]; ROWS],
@@ -21,7 +21,7 @@ impl<T: From<f32> + Copy, const ROWS: usize, const COLS: usize> Matrix<T, ROWS, 
         Self { data: data }
     }
 
-    pub fn transpose(self) -> Matrix<T, COLS, ROWS> {
+    pub fn transpose(&self) -> Matrix<T, COLS, ROWS> {
         let mut result = Matrix::<T, COLS, ROWS>::new();
         for i in 0..ROWS {
             for j in 0..COLS {
@@ -30,6 +30,15 @@ impl<T: From<f32> + Copy, const ROWS: usize, const COLS: usize> Matrix<T, ROWS, 
         }
         result
     }
+
+    pub fn mat(&self) -> &[[T; COLS]; ROWS] {
+        &self.data
+    }
+
+    pub fn d(&mut self) -> &mut T {
+        &mut self.data[0][0]
+    }
+
 }
 
 impl<

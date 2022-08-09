@@ -7,6 +7,7 @@ use core::result::Result;
 use core::time::Duration;
 
 pub mod matrix;
+pub use matrix::Matrix;
 // use heapless::Vec;
 
 // pub trait Interface {
@@ -39,6 +40,16 @@ impl Quaternion {
     }
 }
 
+struct DH {}
+
+impl DH {
+    pub fn dh_t() -> Matrix<f32, 4, 4> {
+        let t = Matrix::<f32, 4, 4>::new();
+
+        t
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::Quaternion;
@@ -62,5 +73,30 @@ mod tests {
     fn it_works() {
         let result = 2 + 2;
         assert_eq!(result, 4);
+    }
+}
+
+#[cfg(test)]
+mod dh_param_tests {
+    use crate::DH;
+
+    #[test]
+    fn it_works() {
+        let result = 2 + 2;
+        assert_eq!(result, 4);
+    }
+    #[test]
+    fn init_transform_mat() {
+        let mut result = DH::dh_t();
+        *result.d() = 1.0;
+        assert_eq!(
+            *result.mat(),
+            [
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0]
+            ]
+        );
     }
 }
