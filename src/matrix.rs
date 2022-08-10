@@ -31,14 +31,9 @@ impl<'a, T: From<f32> + Copy, const ROWS: usize, const COLS: usize> Matrix<T, RO
         result
     }
 
-    pub fn mat(&self) -> &[[T; COLS]; ROWS] {
-        &self.data
+    pub fn mat(&mut self) -> &mut [[T; COLS]; ROWS] {
+        &mut self.data
     }
-
-    pub fn d(&mut self) -> &mut T {
-        &mut self.data[0][0]
-    }
-
 }
 
 impl<

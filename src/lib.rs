@@ -40,12 +40,18 @@ impl Quaternion {
     }
 }
 
-struct DH {}
+pub struct DH {}
 
 impl DH {
-    pub fn dh_t() -> Matrix<f32, 4, 4> {
-        let t = Matrix::<f32, 4, 4>::new();
+    pub fn transform_mat(a: f32, alfa: f32, d: f32, theta: f32) -> Matrix<f32, 4, 4> {
+        let mut t = Matrix::<f32, 4, 4>::new();
+        t = t * DH::mat_trans_x(a);
 
+        t
+    }
+    fn mat_trans_x(distance: f32) -> Matrix<f32, 4, 4> {
+        let mut t = Matrix::<f32, 4, 4>::identity();
+        t.mat()[0][3] = distance;
         t
     }
 }
@@ -87,8 +93,8 @@ mod dh_param_tests {
     }
     #[test]
     fn init_transform_mat() {
-        let mut result = DH::dh_t();
-        *result.d() = 1.0;
+        let mut result = DH::transform_mat(1.0, 2.0, 3.0, 4.0);
+        result.mat()[0][0] = 1.0;
         assert_eq!(
             *result.mat(),
             [
