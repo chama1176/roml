@@ -1,7 +1,8 @@
-use core::ops::{Add, AddAssign, Mul};
+use core::ops::{Add, AddAssign, Mul, Neg};
 use core::result::Result;
 use core::time::Duration;
 
+#[derive(Debug, Copy, Clone)]
 pub struct Matrix<T, const ROWS: usize, const COLS: usize> {
     data: [[T; COLS]; ROWS],
 }
@@ -11,6 +12,9 @@ impl<'a, T: From<f32> + Copy, const ROWS: usize, const COLS: usize> Matrix<T, RO
         Self {
             data: [[T::from(0.0); COLS]; ROWS],
         }
+    }
+    pub fn from(data: [[T; COLS]; ROWS]) -> Self {
+        Self { data: data }
     }
     pub fn identity() -> Self {
         assert_eq!(ROWS, COLS);
@@ -31,8 +35,12 @@ impl<'a, T: From<f32> + Copy, const ROWS: usize, const COLS: usize> Matrix<T, RO
         result
     }
 
-    pub fn mat(&mut self) -> &mut [[T; COLS]; ROWS] {
+    pub fn as_mut(&mut self) -> &mut [[T; COLS]; ROWS] {
         &mut self.data
+    }
+
+    pub fn as_ref(&self) -> &[[T; COLS]; ROWS] {
+        &self.data
     }
 }
 
@@ -81,26 +89,26 @@ impl<
     }
 }
 
-impl<
-        T: From<f32> + Copy + Add<Output = T> + AddAssign + Mul<Output = T>,
-        const ROWS: usize,
-        const COLS: usize,
-    > Mul<Matrix<T, ROWS, COLS>> for f32
-{
-    // The multiplication of rational numbers is a closed operation.
-    type Output = Matrix<T, ROWS, COLS>;
+// impl<
+//         T: From<f32> + Copy + Add<Output = T> + AddAssign + Mul<Output = T>,
+//         const ROWS: usize,
+//         const COLS: usize,
+//     > Mul<Matrix<T, ROWS, COLS>> for f32
+// {
+//     // The multiplication of rational numbers is a closed operation.
+//     type Output = Matrix<T, ROWS, COLS>;
 
-    fn mul(self, rhs: Matrix<T, ROWS, COLS>) -> Self::Output {
-        let mut result = Matrix::<T, ROWS, COLS>::new();
-        for i in 0..ROWS {
-            for j in 0..COLS {
-                result.data[i][j] = T::from(self) * rhs.data[i][j];
-            }
-        }
+//     fn mul(self, rhs: Matrix<T, ROWS, COLS>) -> Self::Output {
+//         let mut result = Matrix::<T, ROWS, COLS>::new();
+//         for i in 0..ROWS {
+//             for j in 0..COLS {
+//                 result.data[i][j] = T::from(self) * rhs.data[i][j];
+//             }
+//         }
 
-        result
-    }
-}
+//         result
+//     }
+// }
 
 impl<T: From<f32> + Copy + Add<Output = T> + AddAssign, const ROWS: usize, const COLS: usize>
     Add<Matrix<T, ROWS, COLS>> for Matrix<T, ROWS, COLS>
@@ -167,10 +175,10 @@ mod test_mat {
     fn mul_scaler_mat() {
         let a: f32 = 2.0;
 
-        let mut b = Matrix::<f32, 2, 3>::new();
-        b.data = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]];
-        let c = a * b;
-        assert_eq!(c.data, [[2.0, 4.0, 6.0], [8.0, 10.0, 12.0]]);
+        // let mut b = Matrix::<f32, 2, 3>::new();
+        // b.data = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]];
+        // let c = a * b;
+        // assert_eq!(c.data, [[2.0, 4.0, 6.0], [8.0, 10.0, 12.0]]);
 
         let mut b = Matrix::<f32, 2, 3>::new();
         b.data = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]];

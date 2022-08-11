@@ -2,12 +2,16 @@
 //! This crate is for robotic math.
 //!
 #![allow(unused_imports)]
-use core::ops::{Add, AddAssign, Mul};
+use core::ops::{Add, AddAssign, Mul, Neg};
 use core::result::Result;
 use core::time::Duration;
+use num_traits::real::Real;
 
 pub mod matrix;
 pub use matrix::Matrix;
+pub mod matrix3;
+pub mod vector3;
+
 // use heapless::Vec;
 
 // pub trait Interface {
@@ -49,9 +53,24 @@ impl DH {
 
         t
     }
-    fn mat_trans_x(distance: f32) -> Matrix<f32, 4, 4> {
+    fn mat_trans_x(d: f32) -> Matrix<f32, 4, 4> {
         let mut t = Matrix::<f32, 4, 4>::identity();
-        t.mat()[0][3] = distance;
+        t.as_mut()[0][3] = d;
+        t
+    }
+    fn mat_rot_x(d: f32) -> Matrix<f32, 4, 4> {
+        let mut t = Matrix::<f32, 4, 4>::identity();
+        t.as_mut()[0][3] = d;
+        t
+    }
+    fn mat_trans_z(d: f32) -> Matrix<f32, 4, 4> {
+        let mut t = Matrix::<f32, 4, 4>::identity();
+        t.as_mut()[2][3] = d;
+        t
+    }
+    fn mat_rot_z(d: f32) -> Matrix<f32, 4, 4> {
+        let mut t = Matrix::<f32, 4, 4>::identity();
+        t.as_mut()[0][3] = d;
         t
     }
 }
@@ -84,6 +103,7 @@ mod tests {
 
 #[cfg(test)]
 mod dh_param_tests {
+    use crate::Matrix;
     use crate::DH;
 
     #[test]
@@ -94,9 +114,9 @@ mod dh_param_tests {
     #[test]
     fn init_transform_mat() {
         let mut result = DH::transform_mat(1.0, 2.0, 3.0, 4.0);
-        result.mat()[0][0] = 1.0;
+        result.as_mut()[0][0] = 1.0;
         assert_eq!(
-            *result.mat(),
+            *result.as_ref(),
             [
                 [1.0, 0.0, 0.0, 0.0],
                 [0.0, 0.0, 0.0, 0.0],
