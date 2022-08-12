@@ -14,7 +14,7 @@ pub trait Vector3<T> {
     fn x(&self) -> &T;
     fn y(&self) -> &T;
     fn z(&self) -> &T;
-    fn as_skew_symmetric_matrix(&self) -> Matrix<T, 3, 3>;
+    fn as_skew_symmetric_mat(&self) -> Matrix<T, 3, 3>;
 }
 
 impl<'a, T: From<f32> + Copy + Add<Output = T> + AddAssign + Mul<Output = T> + Neg<Output = T>>
@@ -47,7 +47,7 @@ impl<'a, T: From<f32> + Copy + Add<Output = T> + AddAssign + Mul<Output = T> + N
     fn z(&self) -> &T {
         &self.as_ref()[2][0]
     }
-    fn as_skew_symmetric_matrix(&self) -> Matrix<T, 3, 3> {
+    fn as_skew_symmetric_mat(&self) -> Matrix<T, 3, 3> {
         Matrix::<T, 3, 3>::from([
             [T::from(0.0), -*self.z(), *self.y()],
             [*self.z(), T::from(0.0), -*self.x()],
@@ -74,7 +74,7 @@ mod test_mat {
     fn skew_symmetric_mat() {
         let v = Matrix::<f32, 3, 1>::from([[1.0], [2.0], [3.0]]);
         assert_eq!(
-            *v.as_skew_symmetric_matrix().as_ref(),
+            *v.as_skew_symmetric_mat().as_ref(),
             [[0.0, -3.0, 2.0], [3.0, 0.0, -1.0], [-2.0, 1.0, 0.0]]
         );
     }

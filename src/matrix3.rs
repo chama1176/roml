@@ -16,7 +16,7 @@ impl<T: From<f32> + Copy + Add<Output = T> + AddAssign + Mul<Output = T> + num_t
     fn from_angle_axis(angle: T, axis: Matrix<T, 3, 1>) -> Matrix<T, 3, 3> {
         Matrix::<T, 3, 3>::identity() * angle.cos()
             + axis * axis.transpose() * (<T as From<f32>>::from(1.0) - angle.cos())
-            + axis.as_skew_symmetric_matrix() * angle.sin()
+            + axis.as_skew_symmetric_mat() * angle.sin()
     }
 }
 
