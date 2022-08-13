@@ -63,10 +63,10 @@ mod test_mat {
 
     #[test]
     fn init_mat() {
-        let mut v = Matrix::<f32, 3, 1>::unit_x();
+        let v = Matrix::<f32, 3, 1>::unit_x();
         assert_eq!(*v.as_ref(), [[1.0], [0.0], [0.0]]);
         // Full path implementation
-        let mut v = <Matrix<f32, 3, 1> as Vector3<f32>>::unit_x();
+        let v = <Matrix<f32, 3, 1> as Vector3<f32>>::unit_x();
         assert_eq!(*v.as_ref(), [[1.0], [0.0], [0.0]]);
     }
 
