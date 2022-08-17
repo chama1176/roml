@@ -58,24 +58,30 @@ impl<'a, T: From<f32> + Copy + Add<Output = T> + AddAssign + Mul<Output = T> + N
 
 #[cfg(test)]
 mod test_mat {
-    use crate::matrix::Matrix;
-    use crate::vector3::Vector3;
 
     #[test]
     fn init_mat() {
-        let v = Matrix::<f32, 3, 1>::unit_x();
-        assert_eq!(*v.as_ref(), [[1.0], [0.0], [0.0]]);
-        // Full path implementation
-        let v = <Matrix<f32, 3, 1> as Vector3<f32>>::unit_x();
-        assert_eq!(*v.as_ref(), [[1.0], [0.0], [0.0]]);
+        let v = na::Vector3::<f32>::x();
+        assert_eq!(v[0], 1.0);
+        assert_eq!(v[1], 0.0);
+        assert_eq!(v[2], 0.0);
+        assert_eq!(v[(0,0)], 1.0);
+        assert_eq!(v[(1,0)], 0.0);
+        assert_eq!(v[(2,0)], 0.0);
     }
 
     #[test]
     fn skew_symmetric_mat() {
-        let v = Matrix::<f32, 3, 1>::from([[1.0], [2.0], [3.0]]);
-        assert_eq!(
-            *v.as_skew_symmetric_mat().as_ref(),
-            [[0.0, -3.0, 2.0], [3.0, 0.0, -1.0], [-2.0, 1.0, 0.0]]
-        );
+        let v = na::Vector3::<f32>::new(1.0, 2.0, 3.0);
+        let sksm = v.cross_matrix();
+        assert_eq!(sksm[(0,0)],  0.0);
+        assert_eq!(sksm[(0,1)], -3.0);
+        assert_eq!(sksm[(0,2)],  2.0);
+        assert_eq!(sksm[(1,0)],  3.0);
+        assert_eq!(sksm[(1,1)],  0.0);
+        assert_eq!(sksm[(1,2)], -1.0);
+        assert_eq!(sksm[(2,0)], -2.0);
+        assert_eq!(sksm[(2,1)],  1.0);
+        assert_eq!(sksm[(2,2)],  0.0);
     }
 }
