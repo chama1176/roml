@@ -2,17 +2,14 @@
 use core::ops::{Add, AddAssign, Mul, Neg};
 use heapless::Vec;
 
-use crate::matrix::Matrix;
-use crate::matrix3::Matrix3;
-use crate::vector3::Vector3;
 use crate::link::Link;
 
 /// Robot Kinematics and Dynamics
-pub struct Rkd {
-    links: Vec<Link, 256>,
+pub struct Rkd<T> {
+    links: Vec<Link<T>, 256>,
 }
 
-impl Rkd {
+impl<T> Rkd<T> {
     fn new() -> Self {
         Self{
             links: Vec::new(),
@@ -23,14 +20,11 @@ impl Rkd {
 
 #[cfg(test)]
 mod test_rkd {
-    use crate::matrix::Matrix;
-    use crate::matrix3::Matrix3;
-    use crate::vector3::Vector3;
     use crate::link::Link;
     use crate::rkd::Rkd;
 
     #[test]
     fn init() {
-        let l = Rkd::new();
+        let l = Rkd::<f32>::new();
     }
 }
