@@ -17,16 +17,14 @@ pub struct Link<T> {
     pub q_min: T,
     pub q_max: T,
     pub p: na::Vector3<T>,             // position in world coordinate
-    pub dpdt: na::Vector3<T>,          // position in world coordinate
-    pub ddpddt: na::Vector3<T>,        // position in world coordinate
-    pub s: na::Vector3<T>,             // com position in world coordinate
-    pub dsdt: na::Vector3<T>,          // com position in world coordinate
-    pub ddsddt: na::Vector3<T>,        // com position in world coordinate
     pub r_quat: na::UnitQuaternion<T>, // rotation quat in world coordinate
-    pub w_vec: na::Vector3<T>,         // rotation quat in world coordinate
-    pub dwdt_vec: na::Vector3<T>,      // rotation quat in world coordinate
-    pub a: na::Unit<na::Vector3<T>>,   // joint axis vec relative to parent link
-    pub b: na::Vector3<T>,             // joint position relative to parent link
+
+    pub ddpddt: na::Vector3<T>,      // position in local coordinate
+    pub ddsddt: na::Vector3<T>,      // com acceleration in local coordinate
+    pub w_vec: na::Vector3<T>,       // rotation vec in local coordinate
+    pub dwdt_vec: na::Vector3<T>,    // rotation vec in local coordinate
+    pub a: na::Unit<na::Vector3<T>>, // joint axis vec relative to parent link
+    pub b: na::Vector3<T>,           // joint position relative to parent link
 }
 
 impl<T: na::RealField> Link<T> {
@@ -44,12 +42,10 @@ impl<T: na::RealField> Link<T> {
             q_min: T::zero(),
             q_max: T::zero(),
             p: na::Vector3::<T>::zeros(),
-            dpdt: na::Vector3::<T>::zeros(),
-            ddpddt: na::Vector3::<T>::zeros(),
-            s: na::Vector3::<T>::zeros(),
-            dsdt: na::Vector3::<T>::zeros(),
-            ddsddt: na::Vector3::<T>::zeros(),
             r_quat: na::UnitQuaternion::identity(),
+
+            ddpddt: na::Vector3::<T>::zeros(),
+            ddsddt: na::Vector3::<T>::zeros(),
             w_vec: na::Vector3::zeros(),
             dwdt_vec: na::Vector3::zeros(),
             a: na::Vector3::x_axis(),
