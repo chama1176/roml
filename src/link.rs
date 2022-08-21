@@ -3,47 +3,54 @@ use core::ops::{Add, AddAssign, Mul, Neg};
 use heapless::Vec;
 
 /// 親リンクからつながる位置（回転軸）を原点とする
+#[derive(Debug)]
 pub struct Link<T> {
-    id: u8,
-    parent: u8,
-    children: Vec<u8, 10>,
-    mass: f32,
-    com: na::Vector3<T>,     // Centor of Mass
-    inertia_mat: na::Matrix3<T>, // 自リンク原点まわり
-    q: f32,
-    dqdt: f32,
-    ddqddt: f32,
-    q_min: f32,
-    q_max: f32,
-    p: na::Vector3<T>,   // position in world coordinate
-    r: na::Matrix3<T>,   // rotation matrix in world coordinate
-    a: na::Unit<na::Vector3<T>>,   // joint axis vec relative to parent link
-    b: na::Vector3<T>,   // joint position relative to parent link   
-
+    pub id: u8,
+    pub parent: u8,
+    pub children: Vec<u8, 10>,
+    pub mass: T,
+    pub com: na::Vector3<T>,         // Centor of Mass, 自リンク原点中心
+    pub inertia_mat: na::Matrix3<T>, // 自リンク原点まわり
+    pub q: T,
+    pub dqdt: T,
+    pub ddqddt: T,
+    pub q_min: T,
+    pub q_max: T,
+    pub p: na::Vector3<T>,                // position in world coordinate
+    pub dpdt: na::Vector3<T>,             // position in world coordinate
+    pub ddpddt: na::Vector3<T>,           // position in world coordinate
+    pub r_quat: na::UnitQuaternion<T>,    // rotation quat in world coordinate
+    pub w_quat: na::UnitQuaternion<T>,    // rotation quat in world coordinate
+    pub dwdt_quat: na::UnitQuaternion<T>, // rotation quat in world coordinate
+    pub a: na::Unit<na::Vector3<T>>,      // joint axis vec relative to parent link
+    pub b: na::Vector3<T>,                // joint position relative to parent link
 }
 
 impl<T: na::RealField> Link<T> {
-    fn new() -> Self {
-        Self{
+    pub fn new() -> Self {
+        Self {
             id: 0,
             parent: 0,
             children: Vec::new(),
-            mass: 0.0,
+            mass: T::zero(),
             com: na::Vector3::<T>::zeros(),
             inertia_mat: na::Matrix3::zeros(),
-            q: 0.0,
-            dqdt: 0.0,
-            ddqddt: 0.0,
-            q_min: 0.0,
-            q_max: 0.0,
+            q: T::zero(),
+            dqdt: T::zero(),
+            ddqddt: T::zero(),
+            q_min: T::zero(),
+            q_max: T::zero(),
             p: na::Vector3::<T>::zeros(),
-            r: na::Matrix3::zeros(),
+            dpdt: na::Vector3::<T>::zeros(),
+            ddpddt: na::Vector3::<T>::zeros(),
+            r_quat: na::UnitQuaternion::identity(),
+            w_quat: na::UnitQuaternion::identity(),
+            dwdt_quat: na::UnitQuaternion::identity(),
             a: na::Vector3::x_axis(),
             b: na::Vector3::<T>::zeros(),
         }
     }
 }
-
 
 #[cfg(test)]
 mod test_link {

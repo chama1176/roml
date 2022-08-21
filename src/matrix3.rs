@@ -8,9 +8,18 @@ mod test_mat {
     #[test]
     fn angle_axis() {
         // https://eigen.tuxfamily.org/dox/classEigen_1_1AngleAxis.html
-        let a = na::geometry::Rotation3::<f32>::from_axis_angle(&na::Vector3::<f32>::x_axis(), 0.25 * core::f32::consts::PI);
-        let b = na::geometry::Rotation3::<f32>::from_axis_angle(&na::Vector3::<f32>::y_axis(), 0.5 * core::f32::consts::PI);
-        let c = na::geometry::Rotation3::<f32>::from_axis_angle(&na::Vector3::<f32>::z_axis(), 0.33 * core::f32::consts::PI);
+        let a = na::geometry::Rotation3::<f32>::from_axis_angle(
+            &na::Vector3::<f32>::x_axis(),
+            0.25 * core::f32::consts::PI,
+        );
+        let b = na::geometry::Rotation3::<f32>::from_axis_angle(
+            &na::Vector3::<f32>::y_axis(),
+            0.5 * core::f32::consts::PI,
+        );
+        let c = na::geometry::Rotation3::<f32>::from_axis_angle(
+            &na::Vector3::<f32>::z_axis(),
+            0.33 * core::f32::consts::PI,
+        );
         let m = a * b * c;
 
         let expect = [[0.0, 0.0, 1.0], [0.969, -0.249, 0.0], [0.249, 0.969, 0.0]];

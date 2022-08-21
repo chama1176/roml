@@ -8,11 +8,11 @@ use core::time::Duration;
 use num_traits::real::Real;
 extern crate nalgebra as na;
 
+pub mod dh;
 pub mod matrix;
 pub mod matrix3;
-pub mod vector3;
 pub mod quaternion;
-pub mod dh;
+pub mod vector3;
 
 pub mod link;
 pub mod rkd;
