@@ -69,10 +69,22 @@ impl<T: na::RealField> Rkd<T> {
                     ),
                 );
 
-            self.links[i].s = self.links[pi].s.clone()
+            self.links[i].s = self.links[pi].p.clone()
                 + self.links[i].r_quat.transform_vector(&self.links[i].com);
-
-            // self.links[i].dpdt = self.links[pi].dpdt.clone_owned()
+            self.links[i].dsdt = self.links[pi].dpdt.clone()
+                + self.links[i]
+                    .w_vec
+                    .cross(&self.links[i].r_quat.transform_vector(&self.links[i].com));
+            self.links[i].ddsddt = self.links[i].ddpddt.clone()
+                + self.links[i]
+                    .dwdt_vec
+                    .cross(&self.links[i].r_quat.transform_vector(&self.links[i].com))
+                + self.links[i].w_vec.cross(
+                    &self.links[i]
+                        .w_vec
+                        .cross(&self.links[i].r_quat.transform_vector(&self.links[i].com)),
+                );
+            // 複数回登場するのは事前計算してもいいかも
         }
     }
 }
