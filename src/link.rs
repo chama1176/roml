@@ -7,7 +7,7 @@ use heapless::Vec;
 pub struct Link<T> {
     pub id: u8,
     pub parent: u8,
-    pub children: Vec<u8, 10>,
+    pub children: Vec<u8, 256>,
     pub mass: T,
     pub com: na::Vector3<T>,         // Centor of Mass, 自リンク原点中心
     pub inertia_mat: na::Matrix3<T>, // 自リンク原点まわり
@@ -61,6 +61,6 @@ mod test_link {
     #[test]
     fn init() {
         let l = Link::<f32>::new();
-        assert_eq!(l.id, 0);
+        assert_eq!(l.parent, 0);
     }
 }
