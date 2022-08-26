@@ -20,7 +20,7 @@ impl<T: na::RealField> Rkd<T> {
         self.links[0].p = na::Vector3::<T>::zeros();
         self.links[0].w_vec = na::Vector3::zeros();
         self.links[0].dwdt_vec = na::Vector3::zeros();
-        self.links[0].ddpddt = na::Vector3::zeros();
+        // self.links[0].ddpddt = na::Vector3::zeros();
         self.links[0].ddsddt = na::Vector3::zeros();
 
         let mut ids = Deque::<u8, 256>::new();
@@ -46,8 +46,7 @@ impl<T: na::RealField> Rkd<T> {
                 + self.links[i].a.clone().into_inner() * self.links[i].dqdt.clone();
             self.links[i].dwdt_vec = pr.inverse().transform_vector(&self.links[pi].dwdt_vec)
                 + self.links[i].a.clone().into_inner() * self.links[i].ddqddt.clone()
-                + pr.inverse()
-                    .transform_vector(&self.links[pi].w_vec)
+                + pr.transform_vector(&self.links[pi].w_vec)
                     .cross(&(self.links[i].a.clone().into_inner() * self.links[i].dqdt.clone()));
 
             self.links[i].ddpddt = pr.inverse().transform_vector(
@@ -65,7 +64,7 @@ impl<T: na::RealField> Rkd<T> {
         }
     }
 
-    fn update_equation_of_motion(&mut self) {
+    fn update_equation_of_motion(&mut self) -> Vec<T, 256> {
         let mut f_hat = Vec::<na::Vector3<T>, 256>::new();
         f_hat
             .resize(self.links.len(), na::Vector3::zeros())
@@ -118,16 +117,22 @@ impl<T: na::RealField> Rkd<T> {
                     &self.links[c as usize].a,
                     self.links[c as usize].q.clone(),
                 ); // lotation from i to c
-                let tmp = r.inverse().transform_vector(&f[c as usize]); // 👺逆かも
-                f[i] += tmp;
-                let tmp = r.inverse().transform_vector(&n[c as usize])
-                    + self.links[c as usize].b.cross(&r.inverse().transform_vector(&f[c as usize]));
+                let f_tmp = r.transform_vector(&f[c as usize]);
+                f[i] += f_tmp;
+                let n_tmp = r.transform_vector(&n[c as usize])
+                    + self.links[c as usize]
+                        .b
+                        .cross(&r.transform_vector(&f[c as usize]));
+                n[i] += n_tmp;
             }
             ids.pop_back().unwrap();
         }
-        let mut t = Vec::<na::Vector3<T>, 256>::new();
-        t.resize(self.links.len(), na::Vector3::zeros()).unwrap();
-        // t =
+        let mut t = Vec::<T, 256>::new();
+        t.resize(self.links.len(), T::zero()).unwrap();
+        for i in 0..self.links.len() {
+            t[i] = n[i].clone().dot(&self.links[i].a);
+        }
+        t
     }
 }
 
@@ -135,8 +140,10 @@ impl<T: na::RealField> Rkd<T> {
 mod test_rkd {
     use crate::link::Link;
     use crate::rkd::Rkd;
+    use approx::assert_relative_eq;
 
     #[test]
+    #[ignore]
     fn init() {
         let mut rkd = Rkd::<f32>::new();
         let mut l0 = Link::new();
@@ -185,26 +192,41 @@ mod test_rkd {
 
     #[test]
     fn lane2d() {
+        let l_1 = 2.0;
+        let i_1 = 0.3;
+        let lg_1 = 3.0;
+        let m1 = 22.0;
+        let l_2 = 2.0;
+        let i_2 = 0.4;
+        let lg_2 = 3.0;
+        let m2 = 12.0;
+        let g = 9.8;
         let mut rkd = Rkd::<f32>::new();
         let mut l0 = Link::new();
         l0.parent = 0;
+        l0.ddpddt = na::Vector3::new(0.0, g, 0.0);
         rkd.links.push(l0).unwrap();
         let mut l1 = Link::new();
         l1.parent = 0;
-        l1.b = na::Vector3::new(0.0, 0.0, 1.0);
+        l1.a = na::Vector3::z_axis();
+        l1.b = na::Vector3::new(0.0, 0.0, 0.0);
+        l1.inertia_mat[(2, 2)] = i_1;
+        l1.com = na::Vector3::new(lg_1, 0.0, 0.0);
+        l1.mass = m1;
         rkd.links.push(l1).unwrap();
         let mut l2 = Link::new();
-        l2.parent = 0;
-        l2.b = na::Vector3::new(0.0, 0.0, 1.0);
+        l2.parent = 1;
+        l2.a = na::Vector3::z_axis();
+        l2.b = na::Vector3::new(l_1, 0.0, 0.0);
+        l2.inertia_mat[(2, 2)] = i_2;
+        l2.com = na::Vector3::new(lg_2, 0.0, 0.0);
+        l2.mass = m2;
         rkd.links.push(l2).unwrap();
         let mut l3 = Link::new();
-        l3.parent = 1;
-        l3.b = na::Vector3::new(0.0, 0.0, 1.0);
+        l3.parent = 2;
+        l3.a = na::Vector3::z_axis();
+        l3.b = na::Vector3::new(l_2, 0.0, 0.0);
         rkd.links.push(l3).unwrap();
-        let mut l4 = Link::new();
-        l4.parent = 1;
-        l4.b = na::Vector3::new(0.0, 0.0, 1.0);
-        rkd.links.push(l4).unwrap();
 
         for i in 0..rkd.links.len() {
             rkd.links[i].id = i as u8;
@@ -214,21 +236,188 @@ mod test_rkd {
                 rkd.links[pid as usize].children.push(id).unwrap();
             }
         }
-        assert_eq!(*rkd.links[0].children, [1, 2]);
-        assert_eq!(*rkd.links[1].children, [3, 4]);
-        assert_eq!(*rkd.links[2].children, []);
-        assert_eq!(*rkd.links[3].children, []);
-        assert_eq!(*rkd.links[4].children, []);
+        assert_eq!(*rkd.links[0].children, [1]);
+        assert_eq!(*rkd.links[1].children, [2]);
+        assert_eq!(*rkd.links[2].children, [3]);
+
+        ////////////////////////////////////////////////////////////////
+
+        let q1 = 0.2;
+        let dq1 = 0.02;
+        let ddq1 = 0.03;
+        rkd.links[1].q = q1;
+        rkd.links[1].dqdt = dq1;
+        rkd.links[1].ddqddt = ddq1;
+        let q2 = 0.3;
+        let dq2 = 0.02;
+        let ddq2 = 0.03;
+        rkd.links[2].q = q2;
+        rkd.links[2].dqdt = dq2;
+        rkd.links[2].ddqddt = ddq2;
+
+        let sin1 = rkd.links[1].q.sin();
+        let cos1 = rkd.links[1].q.cos();
+        let sin2 = rkd.links[2].q.sin();
+        let cos2 = rkd.links[2].q.cos();
+        let sin12 = (rkd.links[1].q + rkd.links[2].q).sin();
+        let cos12 = (rkd.links[1].q + rkd.links[2].q).cos();
 
         rkd.update_kinematic_relationship();
+        let t = rkd.update_equation_of_motion();
         assert_eq!(rkd.links[0].p, na::Vector3::zeros());
-        assert_eq!(rkd.links[1].p, na::Vector3::new(0.0, 0.0, 1.0));
-        assert_eq!(rkd.links[2].p, na::Vector3::new(0.0, 0.0, 1.0));
-        assert_eq!(rkd.links[3].p, na::Vector3::new(0.0, 0.0, 2.0));
-        assert_eq!(rkd.links[4].p, na::Vector3::new(0.0, 0.0, 2.0));
+        assert_eq!(rkd.links[1].p, na::Vector3::new(0.0, 0.0, 0.0));
+        assert_relative_eq!(
+            rkd.links[2].p,
+            na::Vector3::new(l_1 * cos1, l_1 * sin1, 0.0),
+            epsilon = 1.0e-6
+        );
+        assert_relative_eq!(
+            rkd.links[3].p,
+            na::Vector3::new(l_1 * cos1 + l_2 * cos12, l_1 * sin1 + l_2 * sin12, 0.0),
+            epsilon = 1.0e-6
+        );
 
-        rkd.update_equation_of_motion();
+        assert_eq!(rkd.links[1].w_vec, na::Vector3::new(0.0, 0.0, dq1));
+        assert_eq!(rkd.links[2].w_vec, na::Vector3::new(0.0, 0.0, dq1 + dq2));
+        assert_eq!(rkd.links[1].dwdt_vec, na::Vector3::new(0.0, 0.0, ddq1));
+        assert_relative_eq!(
+            rkd.links[2].dwdt_vec,
+            na::Vector3::new(0.0, 0.0, ddq1 + ddq2),
+            epsilon = 1.0e-6
+        );
+        assert_relative_eq!(
+            rkd.links[1].ddpddt,
+            na::Vector3::new(sin1 * g, cos1 * g, 0.0),
+            epsilon = 1.0e-6
+        );
+        assert_relative_eq!(
+            rkd.links[2].ddpddt,
+            na::Vector3::new(
+                sin12 * g - l_1 * (cos2 * dq1 * dq1 - sin2 * ddq1),
+                cos12 * g + l_1 * (sin2 * dq1 * dq1 + cos2 * ddq1),
+                0.0
+            ),
+            epsilon = 1.0e-6
+        );
+        assert_relative_eq!(
+            rkd.links[1].ddsddt,
+            na::Vector3::new(sin1 * g - lg_1 * dq1 * dq1, cos1 * g + lg_1 * ddq1, 0.0),
+            epsilon = 1.0e-6
+        );
+        assert_relative_eq!(
+            rkd.links[2].ddsddt,
+            na::Vector3::new(
+                sin12 * g
+                    - l_1 * (cos2 * dq1 * dq1 - sin2 * ddq1)
+                    - lg_2 * (dq1 + dq2) * (dq1 + dq2),
+                cos12 * g + l_1 * (sin2 * dq1 * dq1 + cos2 * ddq1) + lg_2 * (ddq1 + ddq2),
+                0.0
+            ),
+            epsilon = 1.0e-6
+        );
+        assert_relative_eq!(
+            t[1],
+            i_2 * (ddq1 + ddq2)
+                + m2 * lg_2
+                    * (cos12 * g + l_1 * (sin2 * dq1 * dq1 + cos2 * ddq1) + lg_2 * (ddq1 + ddq2))
+                + i_1 * ddq1
+                + m1 * lg_1 * (cos1 * g + lg_1 * ddq1)
+                + m2 * (l_2 * l_2 * ddq1 + l_1 * lg_2 * cos2 * (ddq1 + ddq2)
+                    - l_1 * lg_2 * sin2 * (dq1 + dq2) * (dq1 + dq2)
+                    + g * l_1 * cos1),
+            epsilon = 1.0e-6
+        );
+        assert_relative_eq!(
+            t[2],
+            i_2 * (ddq1 + ddq2)
+                + m2 * lg_2
+                    * (cos12 * g + l_1 * (sin2 * dq1 * dq1 + cos2 * ddq1) + lg_2 * (ddq1 + ddq2)),
+            epsilon = 1.0e-6
+        );
+
+        ////////////////////////////////////////////////////////////////
+        let q1 = 0.0;
+        let dq1 = 0.02;
+        let ddq1 = 0.03;
+        rkd.links[1].q = q1;
+        rkd.links[1].dqdt = dq1;
+        rkd.links[1].ddqddt = ddq1;
+        let q2 = 0.0;
+        let dq2 = 0.02;
+        let ddq2 = 0.03;
+        rkd.links[2].q = q2;
+        rkd.links[2].dqdt = dq2;
+        rkd.links[2].ddqddt = ddq2;
+
+        let sin1 = rkd.links[1].q.sin();
+        let cos1 = rkd.links[1].q.cos();
+        let sin2 = rkd.links[2].q.sin();
+        let cos2 = rkd.links[2].q.cos();
+        let sin12 = (rkd.links[1].q + rkd.links[2].q).sin();
+        let cos12 = (rkd.links[1].q + rkd.links[2].q).cos();
+
+        rkd.update_kinematic_relationship();
+        let t = rkd.update_equation_of_motion();
+        assert_eq!(rkd.links[0].p, na::Vector3::zeros());
+        assert_eq!(rkd.links[1].p, na::Vector3::new(0.0, 0.0, 0.0));
+        assert_eq!(rkd.links[2].p, na::Vector3::new(l_1, 0.0, 0.0));
+        assert_eq!(rkd.links[3].p, na::Vector3::new(l_1 + l_2, 0.0, 0.0));
+
+        assert_eq!(rkd.links[1].w_vec, na::Vector3::new(0.0, 0.0, dq1));
+        assert_eq!(rkd.links[2].w_vec, na::Vector3::new(0.0, 0.0, dq1 + dq2));
+        assert_eq!(rkd.links[1].dwdt_vec, na::Vector3::new(0.0, 0.0, ddq1));
+        assert_eq!(
+            rkd.links[2].dwdt_vec,
+            na::Vector3::new(0.0, 0.0, ddq1 + ddq2)
+        );
+        assert_relative_eq!(
+            rkd.links[1].ddpddt,
+            na::Vector3::new(sin1 * g, cos1 * g, 0.0),
+            epsilon = 1.0e-6
+        );
+        assert_relative_eq!(
+            rkd.links[2].ddpddt,
+            na::Vector3::new(
+                sin12 * g - l_1 * (cos2 * dq1 * dq1 - sin2 * ddq1),
+                cos12 * g + l_1 * (sin2 * dq1 * dq1 + cos2 * ddq1),
+                0.0
+            ),
+            epsilon = 1.0e-6
+        );
+        assert_relative_eq!(
+            rkd.links[1].ddsddt,
+            na::Vector3::new(sin1 * g - lg_1 * dq1 * dq1, cos1 * g + lg_1 * ddq1, 0.0),
+            epsilon = 1.0e-6
+        );
+        assert_relative_eq!(
+            rkd.links[2].ddsddt,
+            na::Vector3::new(
+                sin12 * g
+                    - l_1 * (cos2 * dq1 * dq1 - sin2 * ddq1)
+                    - lg_2 * (dq1 + dq2) * (dq1 + dq2),
+                cos12 * g + l_1 * (sin2 * dq1 * dq1 + cos2 * ddq1) + lg_2 * (ddq1 + ddq2),
+                0.0
+            ),
+            epsilon = 1.0e-6
+        );
+        assert_relative_eq!(
+            t[1],
+            i_2 * (ddq1 + ddq2)
+                + m2 * lg_2
+                    * (cos12 * g + l_1 * (sin2 * dq1 * dq1 + cos2 * ddq1) + lg_2 * (ddq1 + ddq2))
+                + i_1 * ddq1
+                + m1 * lg_1 * (cos1 * g + lg_1 * ddq1)
+                + m2 * (l_2 * l_2 * ddq1 + l_1 * lg_2 * cos2 * (ddq1 + ddq2)
+                    - l_1 * lg_2 * sin2 * (dq1 + dq2) * (dq1 + dq2)
+                    + g * l_1 * cos1),
+            epsilon = 1.0e-6
+        );
+        assert_relative_eq!(
+            t[2],
+            i_2 * (ddq1 + ddq2)
+                + m2 * lg_2
+                    * (cos12 * g + l_1 * (sin2 * dq1 * dq1 + cos2 * ddq1) + lg_2 * (ddq1 + ddq2)),
+            epsilon = 1.0e-6
+        );
     }
-
-
 }
