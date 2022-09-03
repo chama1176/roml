@@ -10,11 +10,11 @@ pub struct Rkd<T> {
 }
 
 impl<T: na::RealField> Rkd<T> {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self { links: Vec::new() }
     }
 
-    fn update_kinematic_relationship(&mut self) {
+    pub fn update_kinematic_relationship(&mut self) {
         // Currently id 0 must be root link.
         self.links[0].r_quat = na::UnitQuaternion::identity();
         self.links[0].p = na::Vector3::<T>::zeros();
@@ -64,7 +64,7 @@ impl<T: na::RealField> Rkd<T> {
         }
     }
 
-    fn update_equation_of_motion(&mut self) -> Vec<T, 256> {
+    pub fn update_equation_of_motion(&mut self) -> Vec<T, 256> {
         let mut f_hat = Vec::<na::Vector3<T>, 256>::new();
         f_hat
             .resize(self.links.len(), na::Vector3::zeros())
