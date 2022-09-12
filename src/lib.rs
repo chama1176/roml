@@ -14,5 +14,6 @@ pub mod matrix3;
 pub mod quaternion;
 pub mod vector3;
 
+pub mod ik;
 pub mod link;
 pub mod rkd;
