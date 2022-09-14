@@ -90,26 +90,26 @@ mod test_ik {
     #[test]
     fn ik_4dof_triangle() {
         let mut ik = IK4dTriangle::<f32>::new();
-        // ik.a = 3.0;
-        // ik.b = 3.0;
-        // ik.ref_theta = 0.0;
-        // let ans = ik.solve(&na::Vector3::new(3.0, 0.0, 0.0));
-        // assert_relative_eq!(ans[0], 0.0, epsilon = 1.0e-6);
-        // assert_relative_eq!(ans[1], core::f32::consts::PI / 6.0, epsilon = 1.0e-6);
-        // assert_relative_eq!(ans[2], 0.0, epsilon = 1.0e-6);
-        // assert_relative_eq!(ans[3], core::f32::consts::PI * 2.0 / 3.0, epsilon = 1.0e-6);
-        // ik.a = 3.0;
-        // ik.b = 3.0;
-        // ik.ref_theta = 0.0;
-        // let ans = ik.solve(&na::Vector3::new(
-        //     3.0 / (2.0 as f32).sqrt(),
-        //     3.0 / (2.0 as f32).sqrt(),
-        //     0.0,
-        // ));
-        // assert_relative_eq!(ans[0], core::f32::consts::PI / 4.0, epsilon = 1.0e-6);
-        // assert_relative_eq!(ans[1], core::f32::consts::PI / 6.0, epsilon = 1.0e-6);
-        // assert_relative_eq!(ans[2], 0.0, epsilon = 1.0e-6);
-        // assert_relative_eq!(ans[3], core::f32::consts::PI * 2.0 / 3.0, epsilon = 1.0e-6);
+        ik.a = 3.0;
+        ik.b = 3.0;
+        ik.ref_theta = 0.0;
+        let ans = ik.solve(&na::Vector3::new(3.0, 0.0, 0.0));
+        assert_relative_eq!(ans[0], 0.0, epsilon = 1.0e-6);
+        assert_relative_eq!(ans[1], core::f32::consts::PI / 6.0, epsilon = 1.0e-6);
+        assert_relative_eq!(ans[2], 0.0, epsilon = 1.0e-6);
+        assert_relative_eq!(ans[3], core::f32::consts::PI * 2.0 / 3.0, epsilon = 1.0e-6);
+        ik.a = 3.0;
+        ik.b = 3.0;
+        ik.ref_theta = 0.0;
+        let ans = ik.solve(&na::Vector3::new(
+            3.0 / (2.0 as f32).sqrt(),
+            3.0 / (2.0 as f32).sqrt(),
+            0.0,
+        ));
+        assert_relative_eq!(ans[0], core::f32::consts::PI / 4.0, epsilon = 1.0e-6);
+        assert_relative_eq!(ans[1], core::f32::consts::PI / 6.0, epsilon = 1.0e-6);
+        assert_relative_eq!(ans[2], 0.0, epsilon = 1.0e-6);
+        assert_relative_eq!(ans[3], core::f32::consts::PI * 2.0 / 3.0, epsilon = 1.0e-6);
         ik.a = 3.0;
         ik.b = 3.0;
         ik.ref_theta = core::f32::consts::PI / 2.0;
