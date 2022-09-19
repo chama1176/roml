@@ -50,7 +50,7 @@ impl<T: na::RealField> IK4dTriangle<T> {
         let va = rot_ref_theta.transform_vector(&va_dot);
         let vb = rot_ref_theta.transform_vector(&vb_dot);
         ans[0] = va.y.clone().atan2(va.x.clone());
-        ans[1] = (va.z.clone() / self.a.clone()).acos();
+        ans[1] = (va.z.clone() / self.a.clone()).acos(); // 精度悪いめ
 
         let rot_ans0 = na::UnitQuaternion::from_axis_angle(&na::Vector3::z_axis(), ans[0].clone());
         let rot_ans3 = na::UnitQuaternion::from_axis_angle(
