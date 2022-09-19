@@ -52,10 +52,7 @@ impl<T: na::RealField> IK4dTriangle<T> {
         ans[0] = va.y.clone().atan2(va.x.clone());
         ans[1] = (va.z.clone() / self.a.clone()).acos();
 
-        let rot_ans0 = na::UnitQuaternion::from_axis_angle(
-            &na::Vector3::z_axis(),
-            ans[0].clone(),
-        );
+        let rot_ans0 = na::UnitQuaternion::from_axis_angle(&na::Vector3::z_axis(), ans[0].clone());
         let rot_ans3 = na::UnitQuaternion::from_axis_angle(
             &na::Unit::new_normalize(rot_ans0.transform_vector(&na::Vector3::y_axis())),
             ans[3].clone(),
@@ -63,7 +60,7 @@ impl<T: na::RealField> IK4dTriangle<T> {
 
         let vb_dot_dot = rot_ans3.transform_vector(&va) * self.b.clone() / self.a.clone();
 
-        // vector a component of vector b 
+        // vector a component of vector b
         let va_tmp = va.clone() * va.dot(&vb) / self.a.clone() / self.a.clone();
         // let va_tmp2 = va.clone() * va.dot(&vb_dot_dot) / self.a.clone() / self.a.clone();
         // assert_eq!(va_tmp, va_tmp2);
@@ -71,9 +68,9 @@ impl<T: na::RealField> IK4dTriangle<T> {
         let vb_tmp = vb_dot_dot.clone() - va_tmp.clone();
         let vb_tmp2 = vb.clone() - va_tmp.clone();
 
-        ans[2] = na::UnitQuaternion::rotation_between(&vb_tmp, &vb_tmp2)
-            .unwrap()
-            .angle();
+        let vb_tmp_cross = vb_tmp.cross(&vb_tmp2);
+        ans[2] = va.clone().dot(&vb_tmp_cross).signum()
+            * vb_tmp_cross.dot(&vb_tmp_cross).atan2(vb_tmp.dot(&vb_tmp2));
 
         ans
         // 👺原点と方向の定義も必要
@@ -88,6 +85,7 @@ mod test_ik {
     #[test]
     fn ik_4dof_triangle() {
         let mut ik = IK4dTriangle::<f32>::new();
+
         ik.a = 3.0;
         ik.b = 3.0;
         ik.ref_theta = 0.0;
@@ -115,6 +113,14 @@ mod test_ik {
         assert_relative_eq!(ans[0], -core::f32::consts::PI / 3.0, epsilon = 1.0e-6);
         assert_relative_eq!(ans[1], core::f32::consts::PI / 2.0, epsilon = 1.0e-6);
         assert_relative_eq!(ans[2], core::f32::consts::PI / 2.0, epsilon = 1.0e-6);
+        assert_relative_eq!(ans[3], core::f32::consts::PI * 2.0 / 3.0, epsilon = 1.0e-6);
+        ik.a = 3.0;
+        ik.b = 3.0;
+        ik.ref_theta = -core::f32::consts::PI / 2.0;
+        let ans = ik.solve(&na::Vector3::new(3.0, 0.0, 0.0));
+        assert_relative_eq!(ans[0], core::f32::consts::PI / 3.0, epsilon = 1.0e-6);
+        assert_relative_eq!(ans[1], core::f32::consts::PI / 2.0, epsilon = 1.0e-6);
+        assert_relative_eq!(ans[2], -core::f32::consts::PI / 2.0, epsilon = 1.0e-6);
         assert_relative_eq!(ans[3], core::f32::consts::PI * 2.0 / 3.0, epsilon = 1.0e-6);
     }
 }
