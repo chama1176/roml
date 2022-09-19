@@ -70,7 +70,7 @@ impl<T: na::RealField> IK4dTriangle<T> {
 
         let vb_tmp_cross = vb_tmp.cross(&vb_tmp2);
         ans[2] = va.clone().dot(&vb_tmp_cross).signum()
-            * vb_tmp_cross.dot(&vb_tmp_cross).atan2(vb_tmp.dot(&vb_tmp2));
+            * vb_tmp_cross.dot(&vb_tmp_cross).sqrt().atan2(vb_tmp.dot(&vb_tmp2));
 
         ans
         // 👺原点と方向の定義も必要
@@ -82,8 +82,18 @@ mod test_ik {
     use crate::ik::IK4dTriangle;
     use approx::assert_relative_eq;
 
+    trait Deg {
+        fn deg2rad(&self) -> Self;
+    }
+
+    impl Deg for f32 {
+        fn deg2rad(&self) -> Self {
+            self * core::f32::consts::PI / 180.
+        }
+    }
+
     #[test]
-    fn ik_4dof_triangle() {
+    fn ik_4dof_equilateral_triangle() {
         let mut ik = IK4dTriangle::<f32>::new();
 
         ik.a = 3.0;
@@ -122,5 +132,18 @@ mod test_ik {
         assert_relative_eq!(ans[1], core::f32::consts::PI / 2.0, epsilon = 1.0e-6);
         assert_relative_eq!(ans[2], -core::f32::consts::PI / 2.0, epsilon = 1.0e-6);
         assert_relative_eq!(ans[3], core::f32::consts::PI * 2.0 / 3.0, epsilon = 1.0e-6);
+    }
+
+    #[test]
+    fn ik_4dof_triangle() {
+        let mut ik = IK4dTriangle::<f32>::new();
+        ik.a = 1.0;
+        ik.b = (3.0 as f32).sqrt();
+        ik.ref_theta = core::f32::consts::PI / 4.;
+        let ans = ik.solve(&na::Vector3::new(2.0, 0.0, 0.0));
+        assert_relative_eq!(ans[0], -50.76847952.deg2rad(), epsilon = 1.0e-6);
+        assert_relative_eq!(ans[1], 52.23875609.deg2rad(), epsilon = 1.0e-6);
+        assert_relative_eq!(ans[2], 63.43494882.deg2rad(), epsilon = 1.0e-6);
+        assert_relative_eq!(ans[3], core::f32::consts::PI / 2.0, epsilon = 1.0e-6);
     }
 }
