@@ -70,7 +70,10 @@ impl<T: na::RealField> IK4dTriangle<T> {
 
         let vb_tmp_cross = vb_tmp.cross(&vb_tmp2);
         ans[2] = va.clone().dot(&vb_tmp_cross).signum()
-            * vb_tmp_cross.dot(&vb_tmp_cross).sqrt().atan2(vb_tmp.dot(&vb_tmp2));
+            * vb_tmp_cross
+                .dot(&vb_tmp_cross)
+                .sqrt()
+                .atan2(vb_tmp.dot(&vb_tmp2));
 
         ans
         // 👺原点と方向の定義も必要

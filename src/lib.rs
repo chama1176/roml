@@ -17,3 +17,5 @@ pub mod vector3;
 pub mod ik;
 pub mod link;
 pub mod rkd;
+
+pub mod pid_controller;
