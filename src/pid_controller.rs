@@ -4,7 +4,9 @@ pub trait PIDController<T> {
     fn new() -> Self;
     fn update(&mut self, r: T, y: T) -> T;
 }
+
 /// Robot Kinematics and Dynamics
+#[derive(Debug, Clone, Copy)]
 pub struct PID<T> {
     pub kp: T,
     pub ki: T,
@@ -42,6 +44,7 @@ impl<T: na::RealField> PIDController<T> for PID<T> {
 
         self.e_2 = self.e_1.clone();
         self.e_1 = e;
+        self.last_u = u.clone();
 
         u
     }
@@ -49,11 +52,16 @@ impl<T: na::RealField> PIDController<T> for PID<T> {
 
 #[cfg(test)]
 mod test_ik {
-    use crate::pid_controller::PIDController;
+    use crate::pid_controller::*;
     use approx::assert_relative_eq;
 
     #[test]
     fn velocity_type_pid() {
-        assert_relative_eq!(1.0 + 1.0, 2.0, epsilon = 1.0e-6);
+        let mut pid = PID::<f32>::new();
+        pid.kp = 10.;
+        let u = pid.update(5., 3.);        
+        assert_relative_eq!(u, 20.0, epsilon = 1.0e-6);
+        let u = pid.update(5., 3.);        
+        assert_relative_eq!(u, 20.0, epsilon = 1.0e-6);
     }
 }
