@@ -5,9 +5,56 @@ pub trait PIDController<T> {
     fn update(&mut self, r: T, y: T) -> T;
 }
 
-/// Robot Kinematics and Dynamics
 #[derive(Debug, Clone, Copy)]
 pub struct PID<T> {
+    pub kp: T,
+    pub ki: T,
+    pub kd: T,
+    pub i_cramp: T,
+    last_e: T,
+    e_sum: T,
+    dt: T,
+}
+
+impl<T: na::RealField> PIDController<T> for PID<T> {
+    fn new() -> Self {
+        Self {
+            kp: T::zero(),
+            ki: T::zero(),
+            kd: T::zero(),
+            i_cramp: T::from_f32(1.).unwrap(),
+            last_e: T::zero(),
+            e_sum: T::zero(),
+            dt: T::one(),
+        }
+    }
+
+    /// r: Target value
+    /// y: Present value
+    fn update(&mut self, r: T, y: T) -> T {
+        // P.77あたりの式
+        let mut u = T::zero();
+        let e = r - y;
+        self.e_sum += e.clone();
+        u += self.kp.clone() * e.clone();
+        let iv = self.ki.clone() * self.e_sum.clone();
+        if self.i_cramp < iv {
+            u += self.i_cramp.clone();
+        } else if iv < -self.i_cramp.clone() {
+            u += -self.i_cramp.clone();
+        } else {
+            u += iv;
+        }
+        u += self.kd.clone() * (e.clone() - self.last_e.clone());
+
+        self.last_e = e;
+
+        u
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct PIDVelForm<T> {
     pub kp: T,
     pub ki: T,
     pub kd: T,
@@ -17,7 +64,7 @@ pub struct PID<T> {
     dt: T,
 }
 
-impl<T: na::RealField> PIDController<T> for PID<T> {
+impl<T: na::RealField> PIDController<T> for PIDVelForm<T> {
     fn new() -> Self {
         Self {
             kp: T::zero(),
@@ -59,9 +106,9 @@ mod test_ik {
     fn velocity_type_pid() {
         let mut pid = PID::<f32>::new();
         pid.kp = 10.;
-        let u = pid.update(5., 3.);        
+        let u = pid.update(5., 3.);
         assert_relative_eq!(u, 20.0, epsilon = 1.0e-6);
-        let u = pid.update(5., 3.);        
+        let u = pid.update(5., 3.);
         assert_relative_eq!(u, 20.0, epsilon = 1.0e-6);
     }
 }
