@@ -32,19 +32,18 @@ impl<T: na::RealField> PIDController<T> for PID<T> {
     /// r: Target value
     /// y: Present value
     fn update(&mut self, r: T, y: T) -> T {
-        // P.77あたりの式
         let mut u = T::zero();
         let e = r - y;
         self.e_sum += e.clone();
-        u += self.kp.clone() * e.clone();
-        let iv = self.ki.clone() * self.e_sum.clone();
-        if self.i_cramp < iv {
-            u += self.i_cramp.clone();
-        } else if iv < -self.i_cramp.clone() {
-            u += -self.i_cramp.clone();
+        if self.i_cramp < self.e_sum {
+            self.e_sum = self.i_cramp.clone();
+        } else if self.e_sum < -self.i_cramp.clone() {
+            self.e_sum = -self.i_cramp.clone();
         } else {
-            u += iv;
+            // Do nothing
         }
+        u += self.kp.clone() * e.clone();
+        u += self.ki.clone() * self.e_sum.clone();
         u += self.kd.clone() * (e.clone() - self.last_e.clone());
 
         self.last_e = e;
