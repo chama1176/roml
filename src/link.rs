@@ -25,6 +25,8 @@ pub struct Link<T> {
     pub dwdt_vec: na::Vector3<T>,    // rotation vec in local coordinate
     pub a: na::Unit<na::Vector3<T>>, // joint axis vec relative to parent link
     pub b: na::Vector3<T>,           // joint position relative to parent link
+    pub f: na::Vector3<T>,        // External Force in local coordinate
+    pub n: na::Vector3<T>,        // External Torque in local coordinate
 }
 
 impl<T: na::RealField> Link<T> {
@@ -50,6 +52,8 @@ impl<T: na::RealField> Link<T> {
             dwdt_vec: na::Vector3::zeros(),
             a: na::Vector3::x_axis(),
             b: na::Vector3::<T>::zeros(),
+            f: na::Vector3::zeros(),
+            n: na::Vector3::zeros(),
         }
     }
 }

@@ -110,8 +110,8 @@ impl<T: na::RealField> Rkd<T> {
             if flag == false {
                 continue;
             }
-            f[i] = f_hat[i].clone();
-            n[i] = n_hat[i].clone() + self.links[i].com.cross(&f_hat[i]);
+            f[i] = f_hat[i].clone() + self.links[i].f.clone();
+            n[i] = n_hat[i].clone() + self.links[i].com.cross(&f_hat[i]) + self.links[i].n.clone();
             for c in self.links[i].children.clone() {
                 let r = na::UnitQuaternion::from_axis_angle(
                     &self.links[c as usize].a,
